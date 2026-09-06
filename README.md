@@ -1,53 +1,67 @@
 # RISC-V Single-Cycle Processor in Verilog
 
-## Overview
+A 32-bit RISC-V single-cycle processor implemented in synthesizable Verilog-2001, supporting a focused RV32I instruction subset with arithmetic, logical, memory-access, and conditional-branch operations.
+
+## Project Overview
 
 This project implements a 32-bit RISC-V single-cycle processor using Verilog-2001.
 
-The processor uses a modular datapath consisting of a program counter, instruction memory, register file, immediate generator, control unit, ALU control, ALU, data memory, multiplexers, and branch logic.
+The processor follows a modular datapath architecture containing a program counter, instruction memory, register file, immediate generator, control unit, ALU control, ALU, data memory, branch logic, and multiplexers.
 
-The supported instruction set is intentionally limited to:
+The current implementation supports exactly seven instructions:
 
-- ADD
-- SUB
-- AND
-- OR
-- LW
-- SW
-- BEQ
+- `ADD`
+- `SUB`
+- `AND`
+- `OR`
+- `LW`
+- `SW`
+- `BEQ`
+
+The design was functionally verified using a directed Verilog simulation testbench and was synthesized for a Xilinx Artix-7 FPGA target.
+
+---
 
 ## Key Features
 
 - 32-bit RISC-V single-cycle processor
 - Verilog-2001 RTL implementation
+- Focused RV32I instruction subset
 - Modular datapath and control architecture
-- R-type arithmetic and logical operations
-- Load/store memory operations
-- BEQ conditional branching
 - 32-register register file
-- RISC-V x0 behavior
-- Instruction and data memory interfaces
-- Functional simulation testbench
+- RISC-V `x0` behavior
+- Arithmetic and logical ALU operations
+- Load/store memory interface
+- BEQ conditional branch mechanism
+- Separate instruction and data memories
+- Directed functional simulation testbench
+- FPGA synthesis and resource utilization analysis
+
+---
 
 ## Supported Instructions
 
 | Instruction | Type | Operation |
-|---|---|---|
-| ADD | R-type | `rd = rs1 + rs2` |
-| SUB | R-type | `rd = rs1 - rs2` |
-| AND | R-type | `rd = rs1 & rs2` |
-| OR | R-type | `rd = rs1 \| rs2` |
-| LW | I-type | Load word from data memory |
-| SW | S-type | Store word to data memory |
-| BEQ | B-type | Branch if `rs1 == rs2` |
+|-------------|------|-----------|
+| `ADD` | R-type | `rd = rs1 + rs2` |
+| `SUB` | R-type | `rd = rs1 - rs2` |
+| `AND` | R-type | `rd = rs1 & rs2` |
+| `OR` | R-type | `rd = rs1 \| rs2` |
+| `LW` | I-type | `rd = Mem[rs1 + imm]` |
+| `SW` | S-type | `Mem[rs1 + imm] = rs2` |
+| `BEQ` | B-type | Branch if `rs1 == rs2` |
 
-No other instructions are implemented.
+Only the instructions listed above are implemented in the current RTL.
 
-## Processor Architecture
+---
 
-The processor follows a single-cycle datapath in which each instruction completes its required operations within one clock cycle.
+## Architecture Overview
 
-The main datapath contains:
+The processor uses a single-cycle datapath in which the required instruction operations are completed within one clock cycle.
+
+![RISC-V Single-Cycle Processor Architecture](docs/architecture_overview.png)
+
+### Main Datapath Components
 
 - Program Counter
 - PC + 4 logic
@@ -60,73 +74,20 @@ The main datapath contains:
 - Branch Target Adder
 - Branch Decision Logic
 - Data Memory
-- Write-back Multiplexer
+- Multiplexers
+- Write-back path
 
-The processor top-level module is `top`.
+---
 
 ## Main RTL Modules
 
-### Program Counter
+### `Program_Counter`
 
 Stores the current program counter and updates it on the rising edge of the clock. The PC is reset to zero.
 
-### Instruction Memory
+### `PCplus4`
 
-Provides instruction data based on the program counter address.
-
-### Register File
-
-Implements 32 general-purpose 32-bit registers with two read ports and one write port.
-
-Register `x0` follows the RISC-V convention:
-
-- Reads from `x0` return zero.
-- Writes to `x0` are prevented.
-
-### Immediate Generator
-
-Generates the required sign-extended immediate values for the supported I-type, S-type, and B-type instructions.
-
-### Control Unit
-
-Generates the main datapath control signals based on the instruction opcode.
-
-### ALU Control
-
-Determines the ALU operation using the instruction's control fields.
-
-### ALU
-
-Performs:
-
-- ADD
-- SUB
-- AND
-- OR
-
-The ALU also provides a zero result indication used by BEQ.
-
-### Data Memory
-
-Provides the data-memory interface required by LW and SW.
-
-### Multiplexers and Branch Logic
-
-Multiplexers select ALU operands, the next PC source, and write-back data.
-
-## Datapath Description
-
-### R-type instructions
-
-For ADD, SUB, AND, and OR:
+Generates the sequential next instruction address:
 
 ```text
-PC
- ↓
-Instruction Memory
- ↓
-Register File
- ↓
-ALU
- ↓
-Register File
+PC + 4
