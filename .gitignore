@@ -1,0 +1,20 @@
+# Simulation outputs
+*.vcd
+*.vvp
+*.out
+*.log
+*.wlf
+
+# FPGA/build outputs
+*.bit
+*.bin
+*.hex
+*.mif
+
+# Editor/IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.bak
